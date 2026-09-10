@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scanner Numismatico</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: #121212; color: #fff; }
+    .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 16px; }
+    input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; }
+    input, select { background: #2c2c2c; color: #fff; }
+    button { background: #007bff; color: white; font-weight: bold; }
+    .photo-preview { width: 100%; max-height: 250px; object-fit: cover; border-radius: 8px; display: none; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <h2>🪙 App Numismatica</h2>
+
+  <div class="card">
+    <h3>📷 Scanner Fotocamera</h3>
+    <input type="file" id="foto" accept="image/*" capture="environment" onchange="preview(event)">
+    <img id="img-preview" class="photo-preview">
+
+    <input type="text" id="paese" placeholder="Paese (es. Italia, San Marino) *">
+    <input type="text" id="valore" placeholder="Valore nominale (es. 2, 50) *">
+    <input type="text" id="valuta" placeholder="Valuta (es. Euro, Lira)">
+    <input type="text" id="anno" placeholder="Anno">
+    <input type="text" id="note" placeholder="Note / Descrizione">
+    
+    <button onclick="salva()">💾 SALVA IN COLLEZIONE</button>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://iclgqrhocxgzbnnhuqdn.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljbGdxcmhvY3hnemJubmh1cWRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzUzMjAsImV4cCI6MjEwMjgxMTMyMH0.Wq9l5XW_e8EXp_umNAPBATTdEYBc2dyDmj6-xTQzBQg";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function preview(e) {
+      const file = e.target.files[0];
+      if(file) {
+        const img = document.getElementById('img-preview');
+        img.src = URL.createObjectURL(file);
+        img.style.display = 'block';
+      }
+    }
+
+    async function salva() {
+      const paese = document.getElementById('paese').value;
+      const valore = document.getElementById('valore').value;
+      if (!paese || !valore) return alert("Inserisci Paese e Valore!");
+
+      const payload = {
+        id: "M" + Date.now().toString().slice(-5),
+        tipo: "Moneta",
+        paese: paese,
+        valore_facciale: valore,
+        valuta: document.getElementById('valuta').value,
+        anno: document.getElementById('anno').value,
+        note: document.getElementById('note').value
+      };
+
+      const { error } = await supabase.from('collezione').insert([payload]);
+      if (error) alert("Errore: " + error.message);
+      else {
+        alert("Moneta salvata con successo!");
+        location.reload();
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
